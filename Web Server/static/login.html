@@ -1,0 +1,276 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Trackify | IIT Ropar's File Tracking App</title>
+        <style>
+            html, body{
+                margin: 0px;
+                padding: 0px;
+                color: white;
+                font-family: 'verdana';
+                height: 100%;
+                width: 100%;
+                overflow: hidden;
+            }
+            body{
+                background: url('/static/images/black_bg.jpg');
+                background-size: cover;
+            }
+            .floating{
+                display: block;
+                position: fixed;
+                min-width: 60%;
+                min-height: 60%;
+                background-color: white;
+                color: black;
+                border-radius: 10px;
+                padding: 10px;
+                padding-left: 50px;
+                left: 60%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+            }
+            .left{
+                float: left;
+                width: 50%;
+                height: 100%;
+                overflow: hidden;
+            }
+            .vCenter{
+                margin-top: 50%;
+                transform: translate(0%, -50%);
+            }
+            .right{
+                float: left;
+                width: 50%;
+                height: 100%;
+                padding-top: 30px;
+            }
+            #qr{
+                width: 80%;
+                min-height: 40vh;
+                background: transparent url('/static/images/loading.gif') center no-repeat;
+                background-size: contain;
+                margin-left: 50%;
+                transform: translate(-50%, 0%);
+            }
+            #texts{
+                margin-top: 50px;
+                width: 205%;
+                transform: translate(0%, 0%);
+                transition: 0.5s;
+            }
+            #email{
+                width: 45%;
+                padding: 15px;
+                float: left;
+            }
+            #otp{
+                width: 45%;
+                padding: 15px;
+                float: right;
+            }
+            .logo{
+                display: block;
+                position: fixed;
+                left: 15%;
+                top: 15%;
+                width: 10%;
+            }
+            .iitrprlogo{
+                display: block;
+                position: fixed;
+                left: 12%;
+                top: 53%;
+                width: 16%;
+            }
+            button{
+                margin-top: 40px;
+                padding: 15px;
+                padding-left: 20px;
+                padding-right: 20px;
+                background-color: black;
+                outline: none;
+                color: white;
+                border-radius: 5px;
+                border: none;
+                transition: 0.1s;
+            }
+            button:hover{
+                background-color: rgb(58, 58, 58);
+            }
+            #cncl{
+                display: none;
+            }
+            #overlay{
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100%;
+                width: 100%;
+                background-color: rgba(0,0,0,0.7);
+                z-index: 100;
+            }
+            @keyframes rotate {
+                from {transform: translate(-50%, -50%) rotate(0deg);}
+                to {transform: translate(-50%, -50%) rotate(360deg);}
+            }
+            .progress{
+                position: fixed;
+                height: 100px;
+                width: 100px;
+                border-style: solid;
+                border-radius: 50%;
+                border-color: rgba(0,0,0,0) rgba(0,0,0,0) rgba(0,0,0,0) white;
+                animation: rotate 1s cubic-bezier(.29,.59,.71,.44) infinite;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 101;
+            }
+        </style>
+    </head>
+    <body>
+        <script>
+            document.onkeydown = function (t) {
+                if(t.which == 9){
+                    return false;
+                }
+            }
+        </script>
+        <div class="floating">
+            <div class="left">
+                <div class="vCenter">
+                    <h2>Login using Email</h2>
+                    <div id='texts'>
+                        <input id="email" name="email" type="email" placeholder="Enter your email">
+                        <input id="otp" name="otp" type="password" placeholder="Enter the OTP">
+                    </div>
+                    <br>
+                    <button id="btn">GET OTP</button>    
+                    <button id="cncl" onclick="cancel()">CANCEL</button>    
+                </div>
+            </div>
+            <div class="right">
+                <center>Or, just scan this QR code</center>
+                <img id="qr">
+            </div>
+        </div>
+        <img class="logo" src="/static/logo.png">
+        <img class="iitrprlogo" src="/static/iitrpr_logo.png">
+        <div id="overlay">
+            <div class="progress"></div>
+        </div>
+        <script>
+            document.getElementById('btn').onclick = getOTP;
+            function getOTP(){
+                let email = document.getElementById('email').value;
+                if (!/^[a-zA-Z0-9+_\.-]+@[a-zA-Z0-9\.-]+\.[a-zA-Z]+$/.test(email)) {
+                    alert("Enter Valid Email")
+                    return 0;
+                }
+                document.getElementById('overlay').style.display="block";
+                let formData = new FormData();
+                formData.append("email", email);
+				var request = new XMLHttpRequest();
+				request.onreadystatechange = function() {
+					if (request.readyState == XMLHttpRequest.DONE) {
+                        document.getElementById('overlay').style.display="none";
+						let error = JSON.parse(request.responseText);
+						if (error.error) {
+							alert("Some error occurred!");
+							return 0;
+						}
+						document.getElementById('texts').style.transform = 'translate(-55%,0%)';
+						document.getElementById('btn').innerText = 'LOGIN';
+                        document.getElementById('btn').onclick = verifyOTP;
+						document.getElementById('cncl').style.display = 'inline-block';
+					}
+				}
+				request.open("POST", "/generateOTP");
+				request.send(formData);
+            }
+
+            function cancel(){
+                document.getElementById('texts').style.transform = 'translate(0%,0%)';
+                document.getElementById('btn').innerText = 'GET OTP';
+                document.getElementById('btn').onclick = getOTP;
+                document.getElementById('cncl').style.display = 'none';
+            }
+
+            function verifyOTP(){
+                let email = document.getElementById('email').value;
+                let otp = document.getElementById('otp').value;
+                document.getElementById('overlay').style.display="block";
+                let formData = new FormData();
+                formData.append("email", email);
+                formData.append("otp", otp);
+                formData.append("login", true);
+                var request = new XMLHttpRequest();
+				request.onreadystatechange = function() {
+					if (request.readyState == XMLHttpRequest.DONE) {
+                        document.getElementById('overlay').style.display="none";
+						let error = JSON.parse(request.responseText);
+						if (error.error) {
+							alert("Some error occurred!");
+							return 0;
+						}
+                        if (!error.match) {
+                            alert("Invalid OTP!");
+                            console.log(error)
+                            return 0;
+                        }
+						location.reload()
+					}
+				}
+				request.open("POST", "/verifyOTP");
+				request.send(formData);
+            }
+
+            let code = ''
+
+            function generateQR(){
+                qr = document.getElementById('qr');
+                var request = new XMLHttpRequest();
+				request.onreadystatechange = function() {
+                    if (request.readyState == XMLHttpRequest.DONE) {
+                        // document.getElementById('overlay').style.display="none";
+                        let ret = JSON.parse(request.responseText);
+                        if (ret.error) {
+                            alert("Mention Correct Tracking ID!");
+                            return 0;
+                        }
+                        code = ret.code;
+                        qr.src = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data="+ret.code;
+                    }
+                }
+                request.open("GET", '/webapp/generateqr');
+                request.send();
+            }
+
+            function verifyLogin(){
+                var request = new XMLHttpRequest();
+				request.onreadystatechange = function() {
+                    if (request.readyState == XMLHttpRequest.DONE) {
+                        // document.getElementById('overlay').style.display="none";
+                        let ret = JSON.parse(request.responseText);
+                        if (ret.error) {
+                            alert("Mention Correct Tracking ID!");
+                            return 0;
+                        }
+                        if(ret.login){
+                            location.reload()
+                        }
+                    }
+                }
+                request.open("GET", '/webapp/login/read?qr='+code);
+                request.send();
+            }
+
+
+            generateQR();
+            setInterval(verifyLogin, 1000)
+        </script>
+    </body>
+</html>

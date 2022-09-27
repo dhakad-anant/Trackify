@@ -1,0 +1,16 @@
+{% extends 'base.jinja2' %}
+{% block title %}Set Name{% endblock %}
+
+{% block content %}
+<h1>File Tracking System</h1>
+
+<form method = "post" action = "/set_name">
+    <div class="container">
+    <label for="name"><b>What do we call you?</b></label>
+    <input type="text" placeholder="Enter name" name="name" required>
+
+    <button type="submit">Login</button>
+  </div>
+</form>
+
+{% endblock %}

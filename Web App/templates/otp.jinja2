@@ -1,0 +1,17 @@
+{% extends 'base.jinja2' %}
+{% block title %}Login Signup{% endblock %}
+
+{% block content %}
+<h1>File Tracking System</h1>
+
+<form method = "post" action = "/redirect">
+    <div class="container">
+    <h3>Please check your email {{ email }} for the OTP</h3>
+    <label for="otp"><b>Enter your OTP</b></label>
+    <input type="text" placeholder="Enter OTP" name="otp" required>
+
+    <button type="submit">Login</button>
+  </div>
+</form>
+
+{% endblock %}

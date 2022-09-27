@@ -1,0 +1,251 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Trackify | IIT Ropar's File Tracking App</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+        <style>
+            html, body{
+                margin: 0px;
+                padding: 0px;
+                color: white;
+                font-family: 'verdana';
+                height: 100%;
+                width: 100%;
+                overflow: hidden;
+            }
+            body{
+                background: url('/static/images/black_bg.jpg');
+                background-size: cover;
+            }
+            .floating{
+                display: block;
+                position: fixed;
+                min-width: 60%;
+                min-height: 60%;
+                background-color: white;
+                color: black;
+                border-radius: 10px;
+                padding: 10px;
+                padding-left: 50px;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+            }
+            .left{
+                float: left;
+                width: 50%;
+                height: 100%;
+                overflow: hidden;
+                padding-top: 30px;
+            }
+            .vCenter{
+                margin-top: 50%;
+                transform: translate(0%, -50%);
+            }
+            .right{
+                float: left;
+                width: 50%;
+                height: 100%;
+                padding-top: 30px;
+                overflow: auto;
+            }
+            #qr{
+                width: 80%;
+                margin-left: 50%;
+                transform: translate(-50%, 0%);
+            }
+            #texts{
+                margin-top: 50px;
+                width: 200%;
+                transform: translate(0%, 0%);
+                transition: 0.5s;
+            }
+            #email{
+                width: 45%;
+                padding: 15px;
+                float: left;
+            }
+            #otp{
+                width: 45%;
+                padding: 15px;
+                float: right;
+            }
+            button{
+                margin-top: 40px;
+                padding: 15px;
+                padding-left: 20px;
+                padding-right: 20px;
+                background-color: black;
+                outline: none;
+                color: white;
+                border-radius: 5px;
+                border: none;
+                transition: 0.1s;
+            }
+            button:hover{
+                background-color: rgb(58, 58, 58);
+            }
+            #cncl{
+                display: none;
+            }
+            #overlay{
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100%;
+                width: 100%;
+                background-color: rgba(0,0,0,0.7);
+                z-index: 100;
+            }
+            .fa-times:hover{
+                color: red;
+            }
+            @keyframes rotate {
+                from {transform: translate(-50%, -50%) rotate(0deg);}
+                to {transform: translate(-50%, -50%) rotate(360deg);}
+            }
+            .progress{
+                position: fixed;
+                height: 100px;
+                width: 100px;
+                border-style: solid;
+                border-radius: 50%;
+                border-color: rgba(0,0,0,0) rgba(0,0,0,0) rgba(0,0,0,0) white;
+                animation: rotate 1s cubic-bezier(.29,.59,.71,.44) infinite;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 101;
+            }
+            .fa{
+                cursor: pointer;
+            }
+            li{
+                padding: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <script>
+            document.onkeydown = function (t) {
+                if(t.which == 9){
+                    return false;
+                }
+            }
+        </script>
+        <div style="position: fixed; cursor: pointer; color: white; font-size: 50px; left: 7%; top: 50px;">
+            <i onclick="location.href = '/webapp'" class="fa fa-chevron-left" aria-hidden="true"></i>
+        </div>
+        <div class="floating">
+            <div class="left">
+            <h2>Add an Office</h2>
+            <div id='texts'>
+                <input id="email" name="email" type="email" placeholder="Enter office email">
+                <input id="otp" name="otp" type="password" placeholder="Enter the OTP">
+            </div>
+            <br>
+            <button id="btn">GET OTP</button>    
+            <button id="cncl" onclick="cancel()">CANCEL</button>    
+            </div>
+            <div class="right">
+                <h2>Remove an Office</h2>
+                {% if offices|length != 0 %}
+                <ul>
+                    {% for office in offices %}
+                    <li>{{ office }} <font color="black"><i onclick="removeOffice('{{ office }}')" class="fa fa-times" aria-hidden="true"></i></font></li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                No offices to show!
+                {% endif %}
+            </div>
+        </div>
+        <div id="overlay">
+            <div class="progress"></div>
+        </div>
+        <script>
+            document.getElementById('btn').onclick = getOTP;
+            function removeOffice(x){
+                var request = new XMLHttpRequest();
+				request.onreadystatechange = function() {
+                    if (request.readyState == XMLHttpRequest.DONE) {
+                        // document.getElementById('overlay').style.display="none";
+                        let ret = JSON.parse(request.responseText);
+                        if (ret.error) {
+                            alert("Something went wrong!");
+                            return 0;
+                        }
+                        location.reload();
+                    }
+                }
+                request.open("GET", '/removeOffice?office='+x);
+                request.send();
+            }
+            function getOTP(){
+                let email = document.getElementById('email').value;
+                if (!/^[a-zA-Z0-9+_\.-]+@[a-zA-Z0-9\.-]+\.[a-zA-Z]+$/.test(email)) {
+                    alert("Enter Valid Email")
+                    return 0;
+                }
+                document.getElementById('overlay').style.display="block";
+                let formData = new FormData();
+                formData.append("email", email);
+				var request = new XMLHttpRequest();
+				request.onreadystatechange = function() {
+					if (request.readyState == XMLHttpRequest.DONE) {
+                        document.getElementById('overlay').style.display="none";
+						let error = JSON.parse(request.responseText);
+						if (error.error) {
+							alert("Some error occurred!");
+							return 0;
+						}
+						document.getElementById('texts').style.transform = 'translate(-55%,0%)';
+						document.getElementById('btn').innerText = 'ADD';
+                        document.getElementById('btn').onclick = verifyOTP;
+						document.getElementById('cncl').style.display = 'inline-block';
+					}
+				}
+				request.open("POST", "/generateOTP");
+				request.send(formData);
+            }
+
+            function cancel(){
+                document.getElementById('texts').style.transform = 'translate(0%,0%)';
+                document.getElementById('btn').innerText = 'GET OTP';
+                document.getElementById('btn').onclick = getOTP;
+                document.getElementById('cncl').style.display = 'none';
+            }
+
+            function verifyOTP(){
+                let email = document.getElementById('email').value;
+                let otp = document.getElementById('otp').value;
+                document.getElementById('overlay').style.display="block";
+                let formData = new FormData();
+                formData.append("email", email);
+                formData.append("otp", otp);
+                formData.append("addoffice", true);
+                var request = new XMLHttpRequest();
+				request.onreadystatechange = function() {
+					if (request.readyState == XMLHttpRequest.DONE) {
+                        document.getElementById('overlay').style.display="none";
+						let error = JSON.parse(request.responseText);
+						if (error.error) {
+							alert("Some error occurred!");
+							return 0;
+						}
+                        if (!error.match) {
+                            alert("Invalid OTP!");
+                            console.log(error)
+                            return 0;
+                        }
+						location.reload()
+					}
+				}
+				request.open("POST", "/verifyOTP");
+				request.send(formData);
+            }
+
+        </script>
+    </body>
+</html>

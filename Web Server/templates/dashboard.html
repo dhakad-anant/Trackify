@@ -1,0 +1,946 @@
+<!doctype html>
+<html>
+    <head>
+        <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />
+        <title>Trackify | IIT Ropar's File Tracking App</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+        <style>
+            html, body{
+                margin: 0px;
+                padding: 0px;
+                color: black;
+                font-family: 'verdana';
+                height: 100%;
+                width: 100%;
+                overflow: hidden;
+            }
+            body{
+                touch-action: none;
+                background: url('/static/images/black_bg.jpg');
+                background-size: cover;
+            }
+            .left{
+                float: left;
+                width: 25%;
+                height: 100%;
+                border-right: gray 1px solid;
+            }
+            .right{
+                float: left;
+                width: calc(75% - 1px);
+                height: 100%;
+                background: white;
+                overflow: scroll;
+            }
+            .left select{
+                margin-top: 50px;
+                width: 80%;
+                font-size: larger;
+                padding: 15px;
+                background-color: rgba(255,255,255,0.1);
+                color:white;
+            }
+            .left select option{
+                color:black;
+            }
+            .floating{
+                display: none;
+                position: fixed;
+                min-width: 30%;
+                min-width: 400px;
+                min-height: 40%;
+                max-height: 90%;
+                overflow-y: auto;
+                overflow-x: visible;
+                background-color: white;
+                color: black;
+                border-radius: 10px;
+                padding: 10px;
+                z-index: 2;
+                padding-left: 50px;
+                padding-right: 50px;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+            }
+            .left button{
+                display: block;
+                outline: none;
+                background-color: rgba(255,255,255,0);
+                border-style: solid;
+                border-color: white;
+                color:white;
+                border-width: 1px;
+                margin-top: 25px;
+                min-width: 60%;
+                padding: 10px;
+                border-radius: 10px;
+                cursor: pointer;
+            }
+            .left button:hover{
+                background-color: rgba(255,255,255,0.1);
+            }
+            .floating button{
+                margin-top: 40px;
+                margin-right: 20px;
+                padding: 15px;
+                padding-left: 20px;
+                padding-right: 20px;
+                background-color: black;
+                outline: none;
+                color: white;
+                border-radius: 5px;
+                border: none;
+                margin-bottom: 20px;
+                transition: 0.1s;
+            }
+            .floating button:hover{
+                background-color: rgb(58, 58, 58);
+            }
+            .floating select{
+                padding: 5px;
+                width: calc(100% - 10px);
+            }
+            .floating input{
+                padding: 5px;
+                width: calc(100% - 20px);
+            }
+            .fixedsize{
+                overflow: unset;
+            }
+            .navbtn{
+                width: 100%;
+                color: white;
+                background-color: rgba(255,255,255,0.1);
+                display: block;
+                padding-top: 15px;
+                padding-bottom: 15px;
+                cursor: pointer;
+                margin-top: 20px;
+                {% if offices|length == 0 %}
+                color:gray;
+                {% endif %}
+            }
+            {% if offices|length != 0 %}
+            .navbtn:hover{
+                background-color: rgba(255,255,255,0.2);
+            }
+            {% endif %}
+            .active{
+                background-color: rgba(255,255,255,0.3);
+            }
+            .active:hover{
+                background-color: rgba(255,255,255,0.3);
+            }
+            table{
+                margin: 30px;
+                border: black 1px solid;
+                border-collapse: collapse;
+                white-space: nowrap;
+            }
+            tr{
+                padding: 0px;
+                margin: 0px;
+            }
+            th{
+                margin: 0px;
+                background-color: rgba(0,0,0,0.2);
+                padding: 15px;
+                border: none;
+                min-width: 100px;
+                white-space: nowrap;
+                cursor: pointer;
+            }
+            td{
+                padding: 10px;
+                cursor: pointer;
+            }
+            tr:hover{
+                background-color: rgba(0,0,0,0.05);
+            }
+            #search{
+                width: 60%;
+                padding: 15px;
+                margin-top: 20px;
+                font-size: large;
+            }
+            .right select{
+                padding: 15px;
+                margin-top: 20px;
+                width: 20%;
+                font-size: large;
+            }
+            .timeline{
+                margin-top: 50px;
+            }
+            .step{
+                margin: 10px;
+                margin-left: 30px;
+                min-height: 60px;
+                font-size: small;
+            }
+            .step::before{
+                content: "";
+                position: absolute;
+                left: 50px;
+                margin-top: 5px;
+                height: 15px;
+                width: 15px;
+                border-radius: 50%;
+                background-color: black;
+            }
+            .step::after{
+                content: "";
+                position: absolute;
+                left: 55px;
+                margin-top: -40px;
+                height: 70px;
+                width: 5px;
+                background-color: black;
+            }
+            .check:hover{
+                background-color: rgba(0,255,0,0.2);
+            }
+        </style>
+        <style>
+            #myInput {
+                box-sizing: border-box;
+                font-size: 16px;
+                width: 230px;
+                padding: 14px 20px 12px 20px;
+                border: none;
+                border-bottom: 1px solid #ddd;
+                }
+
+                /* The search field when it gets focus/clicked on */
+                #myInput:focus {outline: 3px solid #ddd;}
+
+                #myInput1 {
+                box-sizing: border-box;
+                font-size: 16px;
+                width: 230px;
+                padding: 14px 20px 12px 20px;
+                border: none;
+                border-bottom: 1px solid #ddd;
+                }
+
+                /* The search field when it gets focus/clicked on */
+                #myInput1:focus {outline: 3px solid #ddd;}
+
+                #myInput2 {
+                box-sizing: border-box;
+                font-size: 16px;
+                width: 230px;
+                padding: 14px 20px 12px 20px;
+                border: none;
+                border-bottom: 1px solid #ddd;
+                }
+
+                /* The search field when it gets focus/clicked on */
+                #myInput2:focus {outline: 3px solid #ddd;}
+
+                /* The container <div> - needed to position the dropdown content */
+                .dropdown {
+                position: relative;
+                display: inline-block;
+                }
+
+                /* Dropdown Content (Hidden by Default) */
+                .dropdown-content {
+                display: none;
+                position: absolute;
+                background-color: #f6f6f6;
+                max-height: 200px;
+                overflow-y: scroll;
+                overflow-x: hidden;
+                width: 230px;
+                border: 1px solid #ddd;
+                z-index: 1;
+                }
+
+                /* Links inside the dropdown */
+                .dropdown-content a {
+                color: black;
+                padding: 12px 16px;
+                text-decoration: none;
+                font-size: smaller;
+                display: block;
+                }
+
+                /* Change color of dropdown links on hover */
+                .dropdown-content a:hover {background-color: #f1f1f1}
+
+                /* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
+                .show {display:block;}
+        </style>
+    </head>
+    <body>
+        <div onclick="closeDialogs()" id = "overlay" style="display:none; position: fixed; height: 100%; width: 100%; background-color:rgba(0,0,0,0.5); z-index: 1;"></div>
+        <div class="floating fixedsize" id="create new">
+            <h2>Create a File</h2>
+            <table style="border:none; margin:0px;">
+                <tr>
+                    <td>Name<font color="red">*</font></td>
+                    <td><input type="text" id="fname" autocomplete="off"></td>
+                </tr>
+                <tr>
+                    <td>Type<font color="red">*</font></td>
+                    <td><select id="type">
+                        <option>Form</option>
+                        <option>Bill</option>
+                        <option>Letter</option>
+                    </select></td>
+                </tr>
+                <tr>
+                    <td>Submitting To<font color="red">*</font></td>
+                    <td><div onclick="loadSearch1()"><input type="text" id="sto" disabled></div>
+                        <div id="myDropdown1" class="dropdown-content">
+                            <input autocomplete="off" type="text" placeholder="Search.." id="myInput" onkeyup="filterFunction1()">
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Transfer Ownership</td>
+                    <td><div onclick="loadSearch2()"><input type="text" id="to" disabled></div>
+                        <div id="myDropdown2" class="dropdown-content">
+                            <input autocomplete="off" type="text" placeholder="Search.." id="myInput1" onkeyup="filterFunction2()">
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            <button id="createbtn" onclick="createFile()">CREATE</button><button onclick="closeDialogs()">CANCEL</button>
+        </div>
+        <div class="floating" style="display: none;" id="timeline">
+            <h2 id="filename">Budget Approval</h2>
+            <div class="timeline" id="line">
+                
+            </div>
+            <button onclick="closeDialogs()">CLOSE</button>
+        </div>
+        <div class="floating" style="display: none;" id="writetoken">
+            <center>
+                <p>Write the following ID on the file:</p>
+                <h1 id="token" style="margin-top: 50px;"></h1>
+                <button onclick="closeDialogs()">DONE</button>
+            </center>
+        </div>
+        <div class="floating" style="display: none;" id="success">
+            <center>
+                <img src='/static/images/success.gif' height=300><br>
+                <button style="margin-right: 0px; margin-top:0px;" onclick="closeDialogs()">CLOSE</button>
+            </center>
+        </div>
+        <div class="floating" style="display: none;" id="track">
+            <center>
+                <h2 style="margin-bottom: 50px;">Track a File</h2>
+                Tracking ID<font color="red">*</font>: 
+                <input style="width: 40%;" type="text" id="tracktoken" autocomplete="off"><br>
+                <button onclick="trackFile()">TRACK</button>
+                <button onclick="closeDialogs()">CLOSE</button>
+            </center>
+        </div>
+        <div class="floating fixedsize" id="action">
+            <h2 id="actionname">Budget Approval</h2>
+            <p id="actiontag" style="font-size: small;">Budget Approval</p>
+            <table style="border:none; margin:0px;">
+                <tr>
+                    <td>Action Type</td>
+                    <td><select id="action-type" onchange="changeAction()">
+                        <option>Processed</option>
+                        <option>Processed and Forwarded</option>
+                        <option>Clarification / Inputs Needed</option>
+                        <option>Accepted and Returned Finally</option>
+                        <option>Accepted and Kept Finally</option>
+                        <option>Not Accepted and Returned Finally</option>
+                        <option>Not Accepted and Kept Finally</option>
+                    </select></td>
+                </tr>
+                <tr>
+                <tr>
+                    <td id="fto_name" style="color: gray;">Forwarding To</td>
+                    <td><div onclick="loadSearch3()"><input type="text" id="fto" disabled></div>
+                        <div id="myDropdown3" class="dropdown-content">
+                            <input autocomplete="off" type="text" placeholder="Search.." id="myInput2" onkeyup="filterFunction3()">
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Remarks</td>
+                    <td><input type="text" id="remarks" autocomplete="off"></td>
+                </tr>
+            </table>
+            <button id="actionbtn" onclick="takeAction();">UPDATE</button><button onclick="closeDialogs()">CANCEL</button>
+        </div>
+        <div class="left">
+            <center>
+                <select onchange="loadData()">
+                    {% if offices|length == 0 %}
+                    <option>Personal Account</option>
+                    {% endif %}
+                    {% for office in offices %}
+                    <option>{{ office }}</option>
+                    {% endfor %}
+                </select>
+                <button onclick="openCreateNew()"><i class="fa fa-plus"></i>&nbsp;&nbsp;&nbsp;Create New File</button>
+                <button onclick="document.getElementById('overlay').style.display='block'; document.getElementById('track').style.display='block'; "><i class="fa fa-thumb-tack"></i>&nbsp;&nbsp;&nbsp;Track File by ID</button><br>
+                <span class="navbtn active" style="margin-top: 10px; color:white;" id="created" onclick="tab=0; loadData(); setSearch();">Created</span>
+                <span class="navbtn" id="queue" {% if offices|length!=0 %} onclick="tab=1; loadData(); setSearch();" {% endif %}>Incoming Queue</span>
+                <span class="navbtn" id="received" {% if offices|length!=0 %} onclick="tab=2; loadData(); setSearch();" {% endif %}>Received</span>
+                <span class="navbtn" id="processed" {% if offices|length!=0 %} onclick="tab=3; loadData(); setSearch();" {% endif %}>File History</span>
+                <span onclick="location.href = '/webapp/offices'" style=" z-index:0; cursor:pointer; position: absolute; bottom: 20px; left: 7.5%; transform: translate(-50%,0%);"><font color="white"><i class="fa fa-briefcase" aria-hidden="true"></i> Manage Offices</font></span>
+                <span onclick="logout()" style=" z-index:0; cursor:pointer; position: absolute; bottom: 20px; left: 18.5%; transform: translate(-50%,0%);"><font color="white"><i class="fa fa-sign-out" aria-hidden="true"></i> Logout</font></span>
+            
+            </center>
+        </div>
+        <div class="right">
+            <center>
+                <input type="text" id="search" placeholder="Search" onkeyup="filterFiles()">
+                <select id="s_b">
+                    
+                </select>
+                <table>
+                    
+                </table>
+            </center>
+        </div>
+        <script>
+            
+            Date.prototype.ddmmyyyy = function () {
+            var mm = this.getMonth() + 1;
+            var dd = this.getDate();
+
+            return [
+                (dd > 9 ? "" : "0") + dd,
+                (mm > 9 ? "" : "0") + mm,
+                this.getFullYear(),
+            ].join("/");
+            };
+            let tab = 0;
+            let column = 'time'
+            let desc = true;
+            let columns = [
+                ["name", "trackingID", "type", "status", "time", "tags"],
+                ["name", "owner", "dept", "passed_by", "trackingID", "type", "time", "tags"],
+                ["name", "owner", "dept", "passed_by", "trackingID", "type", "time", "tags"],
+                ["name", "owner", "dept", "trackingID", "type", "time", "tags"]
+            ]
+            let headings = [
+                ["Name", "Tracking ID", "Type", "Status", "Date", "Tags"],
+                ["", "Name", "Created By", "Department", "Sent By", "Tracking ID", "Type", "Date", "Tags"],
+                ["Name", "Created By", "Department", "Sent By", "Tracking ID", "Type", "Date", "Tags"],
+                ["Name", "Created By", "Department", "Tracking ID", "Type", "Date", "Tags"],
+            ]
+
+            let files = [];
+
+
+            function sortData(col){
+                col = columns[tab][headings[tab].lastIndexOf(col) - (tab==1?1:0)];
+                if(col == 'time'){
+                    if(column == col){
+                        if(desc){
+                            desc = false;
+                            setData(files.sort((x,y) => (new Date(Date.parse(x[col])))>(new Date(Date.parse(y[col])))?1:-1));
+                        }else{
+                            desc = true;
+                            setData(files.sort((x,y) => (new Date(Date.parse(x[col])))<(new Date(Date.parse(y[col])))?1:-1))
+                        }
+                    }else{
+                        column = col
+                        desc = false
+                        setData(files.sort((x,y) => (new Date(Date.parse(x[col])))>(new Date(Date.parse(y[col])))?1:-1))
+                    }
+                    return;
+                }
+                if(column == col){
+                    if(desc){
+                        desc = false;
+                        setData(files.sort((x,y) => x[col]>y[col]?1:-1));
+                    }else{
+                        desc = true;
+                        setData(files.sort((x,y) => x[col]<y[col]?1:-1));
+                    }
+                }else{
+                    column = col;
+                    desc = false;
+                    setData(files.sort((x,y) => x[col]>y[col]?1:-1));
+                }
+            }
+
+            function setData(ret){
+                table = document.getElementsByTagName('table')[2];
+                table.innerHTML='';
+                tr = document.createElement('tr');
+                table.appendChild(tr);
+                for(let heading of headings[tab]){
+                    th = document.createElement('th');
+                    th.onclick = () => sortData(heading)
+                    th.innerText = heading;
+                    if(headings[tab].lastIndexOf(heading) - (tab==1?1:0) == columns[tab].lastIndexOf(column)){
+                        th.innerText += desc?' ↑':' ↓'
+                    }
+                    tr.appendChild(th);
+                }
+                if(ret.length==0){
+                    tr = document.createElement('tr');
+                    table.appendChild(tr);
+                    td = document.createElement('td');
+                    td.colSpan = headings[tab].length;
+                    td.style.textAlign="center";
+                    td.innerText = "No files to Show!";
+                    tr.appendChild(td);
+                }
+                for(let file of ret){
+                    tr = document.createElement('tr');
+                    table.appendChild(tr);
+                    if(tab==1){
+                        td = document.createElement('td');
+                        td.classList.add('check')
+                        td.onclick=()=>{
+                            let formData = new FormData();
+                            formData.append("tag", file.trackingID);
+                            var request = new XMLHttpRequest();
+                            request.onreadystatechange = function() {
+                                if (request.readyState == XMLHttpRequest.DONE) {
+                                    document.getElementById('overlay').style.display="none";
+                                    let error = JSON.parse(request.responseText);
+                                    if (error.error) {
+                                        alert("Some error occurred!");
+                                        return 0;
+                                    }
+                                    loadData();
+                                }
+                            }
+                            request.open("POST", "/confirmFile");
+                            request.send(formData);
+                        }
+                        td.innerHTML = "<center><font size=5 color='green'><i class=\"fa fa-check\"></i></font></center>"
+                        tr.appendChild(td);
+                    }
+                    for(let column of columns[tab]){
+                        td = document.createElement('td');
+                        if(column == "tags"){
+                            td.innerText =file.tags.join(', ');
+                        }else{
+                            td.innerText = column!="time"?file[column]:new Date(Date.parse(file[column])).ddmmyyyy();
+                        }
+                        if(tab!=2)
+                        td.onclick = () => loadHistory(file);
+                        else
+                        td.onclick=()=>{
+                            document.getElementById('actionname').innerText = file.name;
+                            document.getElementById('actiontag').innerText = 'Tracking ID: '+file.trackingID;
+                            document.getElementById('action').style.display = 'block';
+                            document.getElementById('overlay').style.display = 'block';
+                        }
+                        
+                        tr.appendChild(td);
+                    }
+                }
+            }
+
+            function openCreateNew(){
+                document.getElementById('overlay').style.display = "block";
+                document.getElementById('create new').style.display = "block";
+            }
+
+            function closeDialogs(){
+                document.getElementById('overlay').style.display = "none";
+                for(let elem of document.getElementsByClassName('floating')){
+                    elem.style.display="none"
+                }
+                for(let elem of document.getElementsByTagName('input')){
+                    if(elem.id == 'search') continue;
+                    elem.value=""
+                }
+            }
+
+            function trackFile(){
+                document.getElementById('filename').innerText = '';
+                line = document.getElementById('line');
+                line.innerHTML = '<center><img height=150 src="/static/images/loading.gif"></center>';
+                var request = new XMLHttpRequest();
+				request.onreadystatechange = function() {
+                    if (request.readyState == XMLHttpRequest.DONE) {
+                        // document.getElementById('overlay').style.display="none";
+                        let ret = JSON.parse(request.responseText);
+                        if (ret.error) {
+                            alert("Mention Correct Tracking ID!");
+                            return 0;
+                        }
+                        line.innerHTML = '';
+                        document.getElementById('filename').innerText = ret.name;
+                        for(let y of ret.history){
+                            div = document.createElement('div');
+                            div.classList.add('step');
+                            div.innerHTML = "<b>"+y.action+"</b><br><font size=1>"+y.date+"</font><br>" + (y.remarks?"Remarks: "+y.remarks:"No Remarks");
+                            line.appendChild(div);
+                        }
+                    }
+                }
+                request.open("GET", '/fileHistory?tag='+document.getElementById('tracktoken').value);
+                request.send();
+                closeDialogs();
+                document.getElementById('timeline').style.display = 'block';
+                document.getElementById('overlay').style.display = 'block';
+            }
+            
+            function loadData(){
+                column = 'time';
+                desc = true;
+                if(tab==0){
+                    document.getElementsByClassName('navbtn')[0].classList.add('active');
+                    document.getElementsByClassName('navbtn')[1].classList.remove('active');
+                    document.getElementsByClassName('navbtn')[2].classList.remove('active');
+                    document.getElementsByClassName('navbtn')[3].classList.remove('active');
+                }else if(tab==1){
+                    document.getElementsByClassName('navbtn')[0].classList.remove('active');
+                    document.getElementsByClassName('navbtn')[1].classList.add('active');
+                    document.getElementsByClassName('navbtn')[2].classList.remove('active');
+                    document.getElementsByClassName('navbtn')[3].classList.remove('active');
+                }else if(tab==2){
+                    document.getElementsByClassName('navbtn')[0].classList.remove('active');
+                    document.getElementsByClassName('navbtn')[1].classList.remove('active');
+                    document.getElementsByClassName('navbtn')[2].classList.add('active');
+                    document.getElementsByClassName('navbtn')[3].classList.remove('active');
+                }else{
+                    document.getElementsByClassName('navbtn')[0].classList.remove('active');
+                    document.getElementsByClassName('navbtn')[1].classList.remove('active');
+                    document.getElementsByClassName('navbtn')[2].classList.remove('active');
+                    document.getElementsByClassName('navbtn')[3].classList.add('active');
+                }
+                let url = "/showFiles";
+                let office = document.getElementsByTagName('select')[2].value;
+                if (tab == 2)
+                url = "/showReceived?office=" + office;
+                else if (tab == 1)
+                url = "/showQueue?office=" + office;
+                else if (tab==3)
+                url = "/showProcessed?office=" + office;
+
+                var request = new XMLHttpRequest();
+				request.onreadystatechange = function() {
+					if (request.readyState == XMLHttpRequest.DONE) {
+                        // document.getElementById('overlay').style.display="none";
+						let ret = JSON.parse(request.responseText);
+						if (ret.error) {
+							alert("Some error occurred!");
+							return 0;
+						}
+						console.log(ret);
+                        files = ret;
+                        setData(ret);
+					}
+				}
+				request.open("GET", url);
+				request.send();
+            }
+
+            function setSearch(){
+                select = document.getElementsByTagName('select')[3];
+                select.innerHTML = '';
+                for(let option of headings[tab]){
+                    if(option.length==0){
+                        continue;
+                    }
+                    opt = document.createElement('option');
+                    opt.innerText = option
+                    select.appendChild(opt);
+                }
+                opt = document.createElement('option');
+                opt.innerText = 'Handled By'
+                select.appendChild(opt);
+            }
+
+            function logout(){
+                fetch("/logout").then(()=>location.reload())
+            }
+
+            function loadSearch1() {
+               document.getElementById("myDropdown1").classList.toggle("show");
+            }
+
+            function loadSearch2() {
+               document.getElementById("myDropdown2").classList.toggle("show");
+            }
+
+            function loadSearch3() {
+                if(document.getElementById('action-type').value != 'Processed and Forwarded'
+                    && document.getElementById('action-type').value != 'Clarification / Inputs Needed'
+                )
+                    return;
+               document.getElementById("myDropdown3").classList.toggle("show");
+            }
+
+            function changeAction(){
+                if(document.getElementById('action-type').value != 'Processed and Forwarded'
+                    && document.getElementById('action-type').value != 'Clarification / Inputs Needed'
+                ){
+                    document.getElementById('fto').value = '';
+                    document.getElementById("myDropdown3").classList.remove("show");
+                    document.getElementById('fto_name').style.color="gray";
+                }else{
+                    document.getElementById('fto_name').style.color="black";
+
+                }
+            }
+
+            function filterFunction1() {
+                var input, filter, ul, li, a, i;
+                input = document.getElementById("myInput");
+                filter = input.value.toUpperCase();
+                div = document.getElementById("myDropdown1");
+                a = div.getElementsByTagName("a");
+                for (i = 0; i < a.length; i++) {
+                    txtValue = a[i].textContent || a[i].innerText;
+                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    a[i].style.display = "";
+                    } else {
+                    a[i].style.display = "none";
+                    }
+                }
+            }
+
+            function filterFunction2() {
+                var input, filter, ul, li, a, i;
+                input = document.getElementById("myInput1");
+                filter = input.value.toUpperCase();
+                div = document.getElementById("myDropdown2");
+                a = div.getElementsByTagName("a");
+                for (i = 0; i < a.length; i++) {
+                    txtValue = a[i].textContent || a[i].innerText;
+                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    a[i].style.display = "";
+                    } else {
+                    a[i].style.display = "none";
+                    }
+                }
+            }
+
+            function filterFunction3() {
+                var input, filter, ul, li, a, i;
+                input = document.getElementById("myInput2");
+                filter = input.value.toUpperCase();
+                div = document.getElementById("myDropdown3");
+                a = div.getElementsByTagName("a");
+                for (i = 0; i < a.length; i++) {
+                    txtValue = a[i].textContent || a[i].innerText;
+                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    a[i].style.display = "";
+                    } else {
+                    a[i].style.display = "none";
+                    }
+                }
+            }
+
+            function getOffices(){
+                var request = new XMLHttpRequest();
+				request.onreadystatechange = function() {
+					if (request.readyState == XMLHttpRequest.DONE) {
+                        // document.getElementById('overlay').style.display="none";
+						let ret = JSON.parse(request.responseText);
+						if (ret.error) {
+							alert("Some error occurred!");
+							return 0;
+						}
+						console.log(ret);
+                        dropdown = document.getElementById('myDropdown1');
+                        dropdown1 = document.getElementById('myDropdown3');
+                        for(let office of ret){
+                            a = document.createElement('a')
+                            a.innerText = office.name
+                            a.onclick = () => {
+                                document.getElementById('sto').value = office.name;
+                                loadSearch1();
+                            }
+                            dropdown.appendChild(a);
+                            a = document.createElement('a')
+                            a.innerText = office.name
+                            a.onclick = () => {
+                                document.getElementById('fto').value = office.name;
+                                loadSearch3();
+                            }
+                            dropdown1.appendChild(a);
+                        }
+					}
+				}
+				request.open("GET", '/getOffices');
+				request.send();
+            }
+
+            function getUsers(){
+                var request = new XMLHttpRequest();
+				request.onreadystatechange = function() {
+					if (request.readyState == XMLHttpRequest.DONE) {
+                        // document.getElementById('overlay').style.display="none";
+						let ret = JSON.parse(request.responseText);
+						if (ret.error) {
+							alert("Some error occurred!");
+							return 0;
+						}
+						console.log(ret);
+                        dropdown = document.getElementById('myDropdown2');
+                        a = document.createElement('a')
+                        a.innerText = 'Clear Selection'
+                        a.onclick = () => {
+                            document.getElementById('to').value = '';
+                            loadSearch2();
+                        }
+                        dropdown.appendChild(a);
+                        for(let office of ret){
+                            a = document.createElement('a')
+                            a.innerText = office.name + ', ' + office.email.substr(0,16)+'...'
+                            a.onclick = () => {
+                                document.getElementById('to').value = office.name + ', ' + office.email;
+                                loadSearch2();
+                            }
+                            dropdown.appendChild(a);
+                        }
+					}
+				}
+				request.open("GET", '/getUsers');
+				request.send();
+            }
+
+            function loadHistory(x){
+                document.getElementById('filename').innerText = x.name;
+                document.getElementById('timeline').style.display = 'block';
+                document.getElementById('overlay').style.display = 'block';
+                line = document.getElementById('line');
+                line.innerHTML = '<center><img height=150 src="/static/images/loading.gif"></center>';
+                var request = new XMLHttpRequest();
+				request.onreadystatechange = function() {
+                    if (request.readyState == XMLHttpRequest.DONE) {
+                        // document.getElementById('overlay').style.display="none";
+                        let ret = JSON.parse(request.responseText);
+                        if (ret.error) {
+                            alert("Some error occurred!");
+                            return 0;
+                        }
+                        line.innerHTML = '';
+                        for(let y of ret.history){
+                            div = document.createElement('div');
+                            div.classList.add('step');
+                            div.innerHTML = "<b>"+y.action+"</b><br><font size=1>"+(new Date(Date.parse(y.date)))+"</font><br>" + (y.remarks?"Remarks: "+y.remarks:"No Remarks");
+                            line.appendChild(div);
+                        }
+                    }
+                }
+                request.open("GET", '/fileHistory?tag='+x.trackingID);
+                request.send();
+            }
+
+            function filterFiles(){
+                search = document.getElementById('search').value;
+                col = columns[tab][headings[tab].lastIndexOf(document.getElementById('s_b').value) - (tab==1?1:0)];
+                if (document.getElementById('s_b').value == "Handled By"){
+                    col = "handledBy"
+                }
+                setData(files.filter(x => {
+                    if(col=='tags' || col=='handledBy'){
+                        return x[col].join(', ').toLowerCase().includes(search.toLowerCase());
+                    }
+                    if(col=='time'){
+                        let y = new Date(Date.parse(x[col])).ddmmyyyy();;
+                        return y.includes(search.toLowerCase());
+                    }
+                    return x[col].toLowerCase().includes(search.toLowerCase());
+                }));
+            }
+
+
+            function takeAction(){
+                let formData = new FormData()
+                let actions = [
+                    "Processed",
+                    "Processed and Forwarded",
+                    "Clarification / Inputs Needed",
+                    "Accepted and Returned Finally",
+                    "Accepted and Kept Finally",
+                    "Not Accepted and Returned Finally",
+                    "Not Accepted and Kept Finally"
+                ];
+                let tag = document.getElementById('actiontag').innerText.split(' ').pop();
+                let type = actions.lastIndexOf(document.getElementById('action-type').value);
+                let next = document.getElementById('fto').value;
+                let office = document.getElementsByTagName('select')[2].value;
+                let remarks = document.getElementById('remarks').value;
+                document.getElementById('actionbtn').disabled = true;
+                document.getElementById('action').style.pointerEvents = 'none';
+                formData.append('tag', tag);
+                formData.append('type', type);
+                formData.append('next', next);
+                formData.append('office', office);
+                formData.append('remarks', remarks);
+                var request = new XMLHttpRequest();
+                request.onreadystatechange = function() {
+                    if (request.readyState == XMLHttpRequest.DONE) {
+                        document.getElementById('overlay').style.display="none";
+                        document.getElementById('actionbtn').disabled = false;
+                        document.getElementById('action').style.pointerEvents = 'auto';
+                        let error = JSON.parse(request.responseText);
+                        if (error.error) {
+                            alert("Some error occurred!");
+                            return 0;
+                        }
+                        closeDialogs();
+                        success();
+                        loadData();
+                    }
+                }
+                request.open("POST", "/updateFile");
+                request.send(formData);
+            }
+
+            function createFile(){
+                let name = document.getElementById('fname').value;
+                let fileType = document.getElementById('type').value;
+                let submittedTo = document.getElementById('sto').value;
+                let transferTo = document.getElementById('to').value;
+                if(name=='' || submittedTo ==''){
+                    alert("Fill the required fields!");
+                    return;
+                }
+                document.getElementById('createbtn').disabled=true;
+                document.getElementById('create new').style.pointerEvents = 'none';
+                let formData = new FormData();
+                formData.append('name', name);
+                formData.append('type', fileType);
+                formData.append('submitted_to', submittedTo);
+                if(transferTo){
+                    formData.append('transfer_to', transferTo);
+                }
+                var request = new XMLHttpRequest();
+                request.onreadystatechange = function() {
+                    if (request.readyState == XMLHttpRequest.DONE) {
+                        document.getElementById('overlay').style.display="none";
+                        document.getElementById('create new').style.pointerEvents = 'auto';
+                        document.getElementById('createbtn').disabled=false;
+                        let error = JSON.parse(request.responseText);
+                        if (error.error) {
+                            alert("Some error occurred!");
+                            return 0;
+                        }
+                        document.getElementById('token').innerText = error.tag;
+                        closeDialogs();
+                        document.getElementById('writetoken').style.display = 'block';
+                        document.getElementById('overlay').style.display = 'block';
+                        loadData();
+                    }
+                }
+                request.open("POST", "/createFile");
+                request.send(formData);
+            }
+
+            function success(){
+                document.getElementById('success').style.display = 'block';
+                document.getElementById('overlay').style.display = 'block';
+            }
+
+            loadData();
+            setSearch();
+            getOffices();
+            getUsers();
+        </script>
+    </body>
+</html>
