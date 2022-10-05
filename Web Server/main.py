@@ -1,5 +1,6 @@
 from flask import Flask, render_template , request , jsonify, redirect
 from flask_login import LoginManager, login_required, logout_user, current_user
+from models import db
 from models import *
 
 from blueprints.auth import auth
@@ -29,9 +30,9 @@ login_manager.init_app(app)
 
 @login_manager.user_loader
 def load_user(token):
-    return Users.query.filter_by(token=token).first()
+    return Users.query.filter_by(token=token).first() # query a user based on token from `Users` model
 
-@app.route('/home')
+@app.route('/home') # non-useful route.
 def home():
 	return render_template('index.jinja2')
 
