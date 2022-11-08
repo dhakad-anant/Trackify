@@ -23,12 +23,14 @@ def initDB():
 @scan.route('/scan' , methods=['POST'])
 @login_required
 def scanImage():
-	file = io.BytesIO(request.files['image'].read()) ## byte file
-	# print(algorithm)
-	# npimg = np.fromstring(file, np.uint8)
-	# img = cv2.imdecode(npimg,cv2.IMREAD_COLOR)
-	# ######### Do preprocessing here ################
-	# id = memory.identify_process(img)
-	# ################################################
-	id = readTag(file)
-	return jsonify({'id':id})
+    file = io.BytesIO(request.files['image'].read()) ## byte file
+    # print(algorithm)
+    # npimg = np.fromstring(file, np.uint8)
+    # img = cv2.imdecode(npimg,cv2.IMREAD_COLOR)
+    # ######### Do preprocessing here ################
+    # id = memory.identify_process(img)
+    # ################################################
+
+    id = readTag(file)
+    print("<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>> id: ", id)
+    return jsonify({'id':id})

@@ -33,10 +33,12 @@ def verifyOTP():
 	try:
 		addr = request.form['email'].lower()
 		otp = request.form['otp']
+		# print(f"debug -> email: {addr}, otp: {otp}")
 		real_otp_obj = OTP.query.filter(OTP.email == addr, OTP.created_on > (datetime.now()-timedelta(minutes=10))).first()
 		if not real_otp_obj:
 			return jsonify({'match':False})
 		real_otp = real_otp_obj.otp
+		# print(f"debug -> real_otp: {real_otp}")
 		if otp == real_otp:
 			db.session.delete(real_otp_obj)
 			db.session.commit()
@@ -57,8 +59,11 @@ def verifyOTP():
 				login_user(user, remember=True)
 				return jsonify({'match':True, 'name':'', 'profile':False, 'offices':user.offices})
 			elif 'addoffice' in request.form.keys() and request.form['addoffice']:
+				# print(f"debug -> INSIDE ADDOFFICE!")
 				account = OfficeEmails.query.filter_by(email=addr).first()
+				# print(f"debug -> account_obj: {account}")
 				user = current_user
+				# print(f"debug -> user.offices: {user.offices.split('$')}")
 				if account.name in user.offices.split('$'):
 					raise Exception('Office already added!')
 				if len(user.offices):

@@ -118,7 +118,7 @@
                 cursor: pointer;
                 margin-top: 20px;
                 {% if offices|length == 0 %}
-                color:gray;
+                color: gray;
                 {% endif %}
             }
             {% if offices|length != 0 %}
@@ -334,7 +334,10 @@
             <center>
                 <h2 style="margin-bottom: 50px;">Track a File</h2>
                 Tracking ID<font color="red">*</font>: 
-                <input style="width: 40%;" type="text" id="tracktoken" autocomplete="off"><br>
+                <input style="width: 40%;" type="text" id="tracktoken" autocomplete="off"><br> 
+                <br>
+                Or Select Tag's Image<font color="red">*</font>: 
+                <input style="width: 40%;" type="file" id="input_tag_image" name="input_tag_image" accept="image/*"><br> 
                 <button onclick="trackFile()">TRACK</button>
                 <button onclick="closeDialogs()">CLOSE</button>
             </center>
@@ -578,11 +581,40 @@
                         }
                     }
                 }
-                request.open("GET", '/fileHistory?tag='+document.getElementById('tracktoken').value);
-                request.send();
-                closeDialogs();
-                document.getElementById('timeline').style.display = 'block';
-                document.getElementById('overlay').style.display = 'block';
+                
+                // if tag id was not entered and an image was inserted instead.
+                if(document.getElementById('tracktoken').value == ''){
+                    console.log(".........tag id was not entered!!!!!...........")
+                    console.log("input_tag_image: ", input_tag_image.files[0]);
+                    async function getTagID(){
+                        let formData = new FormData(); 
+                        formData.append("image", input_tag_image.files[0]);
+                        let scan_response = await fetch('/scan', {
+                            method: "POST", 
+                            body: formData
+                        });
+                        let scanned_tag = await scan_response.json();
+                        return scanned_tag;
+                    } 
+                    // let scanned_tag_id = getTagID();
+                    getTagID().then(scanned_tag => {
+                        console.log("scanned_tag: ", scanned_tag['id']);
+                        document.getElementById('tracktoken').value = scanned_tag['id'];
+                        request.open("GET", '/fileHistory?tag='+document.getElementById('tracktoken').value);
+                        request.send();
+                        closeDialogs();
+                        document.getElementById('timeline').style.display = 'block';
+                        document.getElementById('overlay').style.display = 'block';
+                    })
+                }
+
+                else{
+                    request.open("GET", '/fileHistory?tag='+document.getElementById('tracktoken').value);
+                    request.send();
+                    closeDialogs();
+                    document.getElementById('timeline').style.display = 'block';
+                    document.getElementById('overlay').style.display = 'block';
+                }
             }
             
             function loadData(){

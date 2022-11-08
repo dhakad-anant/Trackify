@@ -52,9 +52,14 @@ def readTag(url):
         for text_result in get_handw_text_results.analyze_result.read_results:
             for line in text_result.lines:
                 ans = line.text
-                print(line.text)
+                print("some identified lines: ", line.text)
                 reco += ans
             reco += ' '
+
+    print("identified text from input_tag_image: ", reco)
+    reco = "".join(reco.split(" "))
+    print("identified tag from input_tag_image: ", reco)
+    return reco
 
     x = search_tree.find(reco.upper(), len(reco)+5)
     if len(x)>0:
