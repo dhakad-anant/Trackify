@@ -8,6 +8,8 @@ from models import *
 from modules.pHashDB.ocr import search_tree
 import modules.email_client.email as email
 
+DEBUG = True
+
 file_ops = Blueprint('file_ops', __name__, template_folder='templates')
 
 @file_ops.route('/createFile' , methods=['POST'])
@@ -39,7 +41,7 @@ def confirmTransfer():
         transfer = TransferRequest.query.filter_by(id=t_id).first()
         f = Files.query.filter_by(id=transfer.file_id).first()
         f.created_by = transfer.to_id
-        log = FileLogs(f.id, transfer.from_id, "Ownership transfered", "To " + transfer.to_id)
+        log = FileLogs(f.id, transfer.from_id, "Ownership transfered", "To " + transfer.to_id, current_user.login_email)
         db.session.add(log)
         db.session.delete(transfer)
         db.session.commit()
@@ -65,7 +67,9 @@ def confirmFile():
 def showFiles():
     try:
         fs = Files.query.filter_by(created_by=current_user.login_email).all()
-        ret = [{'name':x.name, 
+        ret = [
+            {
+                'name':x.name, 
                 'owner':Users.query.filter_by(login_email=x.created_by).first().name,
                 'dept':Users.query.filter_by(login_email=x.created_by).first().department,
                 'trackingID':crypt.encrypt(x.id),
@@ -74,8 +78,18 @@ def showFiles():
                 'tags':[y.tag for y in Tags.query.filter(Tags.file_id==x.id, Tags.email==current_user.login_email).all()],
                 'handledBy':[y.location for y in FileLogs.query.filter_by(file_id=x.id).all()],
                 'status':str(str('Currently with ' + x.location) if x.confirmed else str('Sent to ' + x.location)) if x.location else 'File Processed'
-                } for x in fs]
+            } for x in fs   
+        ]
         ret = sorted(ret, key=lambda x: x['time'], reverse=True)
+        
+        if DEBUG:
+            print("\n\n\n showFiles: ") # debug
+            for entry in ret: # debug
+                for element in entry: # debug
+                    print(f"\t{element} : {entry[element]}") # debug
+                print("\n") # debug
+            print("\n\n\n") # debug
+        
         return jsonify(ret)
     except Exception as e:
         print(e)
@@ -98,22 +112,37 @@ def showTransfers():
         print(e)
         return jsonify({'error':True})
 
+
 def latestUpdate(x):
     try:
-        return sorted(FileLogs.query.filter(FileLogs.file_id==x.id, FileLogs.outcome!="Ownership transfered").all(), key=lambda x: x.time, reverse=True)[0]
+        return sorted(
+                    FileLogs.query.filter(FileLogs.file_id==x.id, FileLogs.outcome!="Ownership transfered").all(), 
+                    key=lambda x: x.time, 
+                    reverse=True
+                )[0]
     except Exception as e:
         print(e)
         return None
+
+def latestHandledBy(x): # latest person who has passed this file.
+    y = latestUpdate(x)
+    if y is None:
+        return x.created_by
+    return y.handled_in_office_by
+
 def latestLocation(x):
     y = latestUpdate(x)
     if y is None:
-        return "Self"
+        # return "Self"
+        return Users.query.filter_by(login_email=x.created_by).first().offices.split('$')[0] # changing this to the office by whom this file was created.
     return y.location
+
 def latestTime(x):
     y= latestUpdate(x)
     if y is None:
         return x.created_on
     return y.time
+
 
 # Show Files sent to me but not received
 @file_ops.route('/showQueue', methods=['GET'])
@@ -122,17 +151,21 @@ def showQueue():
     try:
         office = request.args['office']
         fs = Files.query.filter(Files.location == office, Files.confirmed == False).all()
-        ret = [{'name':x.name, 
+        ret = [
+            {
+                'name':x.name, 
                 'owner':Users.query.filter_by(login_email=x.created_by).first().name,
                 'dept':Users.query.filter_by(login_email=x.created_by).first().department,
                 'passed_by':latestLocation(x),
+                # 'passed_by': latestHandledBy(x), # changing this to the person who handled this file last time.
                 'trackingID':crypt.encrypt(x.id),
                 'status':x.created_by,
                 'time':latestTime(x),
                 'tags':[y.tag for y in Tags.query.filter(Tags.file_id==x.id, Tags.email==current_user.login_email).all()],
-                'handledBy':[y.location for y in FileLogs.query.filter_by(file_id=x.id).all()],
+                'handledBy':[y.location for y in FileLogs.query.filter_by(file_id=x.id).all()], # might need to change this to y.handled_in_office_by later
                 'type':x.category
-                } for x in fs]
+            } for x in fs
+        ]
         ret = sorted(ret, key=lambda x: x['time'], reverse=True)
         return jsonify(ret)
     except Exception as e:
@@ -146,17 +179,21 @@ def showReceived():
     try:
         office = request.args['office']
         fs = Files.query.filter(Files.location == office, Files.confirmed == True).all()
-        ret = [{'name':x.name, 
+        ret = [
+            {
+                'name':x.name, 
                 'owner':Users.query.filter_by(login_email=x.created_by).first().name,
                 'dept':Users.query.filter_by(login_email=x.created_by).first().department,
                 'passed_by':latestLocation(x),
+                # 'passed_by': latestHandledBy(x), # changing this to the person who handled this file last time.
                 'trackingID':crypt.encrypt(x.id),
                 'status': x.created_by,
-                'time':latestTime(x),
+                'time': latestTime(x),
                 'tags':[y.tag for y in Tags.query.filter(Tags.file_id==x.id, Tags.email==current_user.login_email).all()],
-                'handledBy':[y.location for y in FileLogs.query.filter_by(file_id=x.id).all()],
+                'handledBy':[y.location for y in FileLogs.query.filter_by(file_id=x.id).all()], # might need to change this to y.handled_in_office_by later
                 'type':x.category
-                } for x in fs]
+            } for x in fs
+        ]
         ret = sorted(ret, key=lambda x: x['time'], reverse=True)
         return jsonify(ret)
     except:
@@ -173,7 +210,6 @@ def Confirmed():
         if(fs.location != office):
             return jsonify({'error':True})
         return jsonify({'name':fs.name, 'confirmed':fs.confirmed})
-        return jsonify(ret)
     except:
         return jsonify({'error':True})
 
@@ -186,16 +222,19 @@ def showProcessed():
         fileids = list(set([x.file_id for x in fs]))
         print(fileids)
         files = [Files.query.filter_by(id=x).first() for x in fileids]
-        ret = [{'name':x.name, 
+        ret = [
+            {
+                'name':x.name, 
                 'owner':Users.query.filter_by(login_email=x.created_by).first().name,
                 'dept':Users.query.filter_by(login_email=x.created_by).first().department,
                 'trackingID':crypt.encrypt(x.id),
                 'type':x.category,
                 'time':x.created_on,
                 'tags':[y.tag for y in Tags.query.filter(Tags.file_id==x.id, Tags.email==current_user.login_email).all()],
-                'handledBy':[y.location for y in FileLogs.query.filter_by(file_id=x.id).all()],
+                'handledBy':[y.location for y in FileLogs.query.filter_by(file_id=x.id).all()], # might need to change this to y.handled_in_office_by later
                 'status':str(str('Currently with ' + x.location) if x.confirmed else str('Sent to ' + x.location)) if x.location else 'File Processed'
-                } for x in files]
+            } for x in files
+        ]
         ret = sorted(ret, key=lambda x: x['time'], reverse=True)
         print(ret)
 
@@ -211,31 +250,47 @@ def showProcessed():
 def updateFile():
     try:
         tag, typ, office, next_location, remarks = [request.form[x] for x in ['tag','type', 'office','next','remarks']]
-        remarks = current_user.name + ': ' + remarks
+        # remarks = current_user.name + ': ' + remarks
+        remarks = ' ' + remarks # excluding name of user because anyway we going to store his email ID in 'handled_in_office_by' field
         typ = int(typ)
+
+        # Processed - 0
         if typ == 0:
             id = crypt.decrypt(tag)
             f = Files.query.filter_by(id=id).first()
-            fl = FileLogs(id, office, 'Processed internally', remarks)
+            fl = FileLogs(id, office, 'Processed internally', remarks, current_user.login_email)
             f.location = office
             f.confirmed = True
             db.session.add(fl)
             db.session.commit()
+        
+        # Processed and Forwarded - 1
+        # Accepted and Returned Finally - 3 
+        # Accepted and Kept Finally - 4
         elif typ in [1, 3, 4]:
             id = crypt.decrypt(tag)
             f = Files.query.filter_by(id=id).first()
-            fl = FileLogs(id, office, 'Passed on' if next_location else ('Approved and Returned' if typ==3 else 'Approved and Kept'), remarks)
+            fl = FileLogs(id, office, 'Passed on' if next_location else ('Approved and Returned' if typ==3 else 'Approved and Kept'), remarks, current_user.login_email)
+            
+            # office_where_file_was_created = Users.query.filter_by(login_email=f.created_by).first().offices.split('$')[0]
             f.location = next_location
             f.confirmed = False
             db.session.add(fl)
             db.session.commit()
+
+        # Not Accepted and Returned Finally - 5 
+        # Not Accepted and Kept Finally - 6
         elif typ in [5,6]:
             id = crypt.decrypt(tag)
             f = Files.query.filter_by(id=id).first()
-            fl = FileLogs(id, office, 'Not Approved and Returned' if typ==5 else 'Not Approved and Kept' , remarks)
+            fl = FileLogs(id, office, 'Not Approved and Returned' if typ==5 else 'Not Approved and Kept' , remarks, current_user.login_email)
+            
+            # office_where_file_was_created = Users.query.filter_by(login_email=f.created_by).first().offices.split('$')[0]
             f.location = ''
             db.session.add(fl)
             db.session.commit()
+
+        # Clarification / Inputs Needed - 7
         else:
             if not next_location:
                 id = crypt.decrypt(tag)
@@ -244,12 +299,14 @@ def updateFile():
             else:
                 id = crypt.decrypt(tag)
                 f = Files.query.filter_by(id=id).first()
-                fl = FileLogs(id, office, 'Sent for clarification', remarks)
+                fl = FileLogs(id, office, 'Sent for clarification', remarks, current_user.login_email)
                 f.location = next_location
                 f.confirmed = False
                 db.session.add(fl)
                 db.session.commit()
+
         return jsonify({'error':False})
+
     except Exception as e:
         return jsonify({'error':True})
 
@@ -266,18 +323,31 @@ def fileHistory():
         ret = { 'name':f.name,
                 'token':tag,
                 'tags':tags,
-                'history': [{'location':x.location, 
-                'date':x.time,
-                'action':x.outcome + " by " + x.location,
-                'remarks':x.remarks
-                } for x in fls]
+                'history': [
+                    {
+                        'location':x.location, 
+                        'date':x.time,
+                        'action':x.outcome + " by " + x.location,
+                        'remarks':x.remarks, 
+                        'last_handled_by': x.handled_in_office_by, 
+                    } for x in fls
+                ]
             }
         if (f.location and not f.confirmed):
-            ret['history'].append({'location':f.location, 'date':datetime.now(), 'action':'Sent to ' + f.location, 'remarks':''})
+            ret['history'].append({'location':f.location, 'date':datetime.now(), 'action':'Sent to ' + f.location, 'remarks':'', 'last_handled_by': 'NA'})
         elif (f.location):
-            ret['history'].append({'location':f.location, 'date':datetime.now(), 'action':'Currently at ' + f.location, 'remarks':''})
+            ret['history'].append({'location':f.location, 'date':datetime.now(), 'action':'Currently at ' + f.location, 'remarks':'', 'last_handled_by': 'NA'})
         
         ret['history'] = sorted(ret['history'], key=lambda x: x['date'], reverse=True)
+
+        if DEBUG:
+            print("\n\n\nfileHistory tag: ", tag)
+            for entry in ret['history']: # debug
+                for element in entry: # debug
+                    print(f"\t{element} : {entry[element]}") # debug
+                print("\n") # debug
+            print("\n\n\n") # debug
+
         return jsonify(ret)
     except Exception as e:
         return jsonify({'error':True, 'msg':str(e)})

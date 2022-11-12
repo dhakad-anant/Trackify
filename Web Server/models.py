@@ -72,7 +72,7 @@ class Files(db.Model):
     created_by = db.Column(db.String)
     created_on = db.Column(db.DateTime)
     category = db.Column(db.String)
-    location = db.Column(db.String)
+    location = db.Column(db.String) # currently at (or sent to)
     confirmed = db.Column(db.Boolean)
     
     def __init__(self, name, created_by, category, location):
@@ -88,18 +88,20 @@ class Files(db.Model):
 
 class FileLogs(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    file_id = db.Column(db.Integer)
-    location = db.Column(db.String)
+    file_id = db.Column(db.Integer, db.ForeignKey('files.id'))
+    location = db.Column(db.String)  # from
     time = db.Column(db.DateTime)
+    handled_in_office_by = db.Column(db.String) # email of person in the office who handled the file
     outcome = db.Column(db.String)
     remarks = db.Column(db.String)
 
-    def __init__(self, file_id, location, outcome, remarks):
+    def __init__(self, file_id, location, outcome, remarks, handled_in_office_by):
         self.file_id = file_id
         self.location = location
         self.time = datetime.now()
         self.outcome = outcome
         self.remarks = remarks
+        self.handled_in_office_by = handled_in_office_by
 
     def __repr__(self):
         return str(self.id)+" "+self.location+" "+str(self.time)

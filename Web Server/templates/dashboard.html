@@ -361,7 +361,8 @@
                 <tr>
                 <tr>
                     <td id="fto_name" style="color: gray;">Forwarding To</td>
-                    <td><div onclick="loadSearch3()"><input type="text" id="fto" disabled></div>
+                    <td>
+                        <div onclick="loadSearch3()"><input type="text" id="fto" disabled></div>
                         <div id="myDropdown3" class="dropdown-content">
                             <input autocomplete="off" type="text" placeholder="Search.." id="myInput2" onkeyup="filterFunction3()">
                         </div>
@@ -494,6 +495,7 @@
                     tr.appendChild(td);
                 }
                 for(let file of ret){
+                    console.log(file);
                     tr = document.createElement('tr');
                     table.appendChild(tr);
                     if(tab==1){
@@ -509,6 +511,7 @@
                                     let error = JSON.parse(request.responseText);
                                     if (error.error) {
                                         alert("Some error occurred!");
+                                        // alert("Some error occurred!");
                                         return 0;
                                     }
                                     loadData();
@@ -528,15 +531,15 @@
                             td.innerText = column!="time"?file[column]:new Date(Date.parse(file[column])).ddmmyyyy();
                         }
                         if(tab!=2)
-                        td.onclick = () => loadHistory(file);
+                            td.onclick = () => loadHistory(file);
                         else
-                        td.onclick=()=>{
-                            document.getElementById('actionname').innerText = file.name;
-                            document.getElementById('actiontag').innerText = 'Tracking ID: '+file.trackingID;
-                            document.getElementById('action').style.display = 'block';
-                            document.getElementById('overlay').style.display = 'block';
-                        }
-                        
+                            td.onclick=()=>{
+                                document.getElementById('actionname').innerText = file.name;
+                                document.getElementById('actiontag').innerText = 'Tracking ID: '+file.trackingID;
+                                document.getElementById('action').style.display = 'block';
+                                document.getElementById('overlay').style.display = 'block';
+                            }
+                            
                         tr.appendChild(td);
                     }
                 }
@@ -576,7 +579,10 @@
                         for(let y of ret.history){
                             div = document.createElement('div');
                             div.classList.add('step');
-                            div.innerHTML = "<b>"+y.action+"</b><br><font size=1>"+y.date+"</font><br>" + (y.remarks?"Remarks: "+y.remarks:"No Remarks");
+                            div.innerHTML = "<b>" + y.action + "</b>" 
+                                            + "<br>" + "<font size=1>" + (new Date(Date.parse(y.date))) + "</font>"  
+                                            + "<br>" + (y.remarks?"Remarks: "+y.remarks:"No Remarks")
+                                            + "<br>" + "<i>" + ("Last Handled By: " + y.last_handled_by) + "</i>";
                             line.appendChild(div);
                         }
                     }
@@ -644,11 +650,11 @@
                 let url = "/showFiles";
                 let office = document.getElementsByTagName('select')[2].value;
                 if (tab == 2)
-                url = "/showReceived?office=" + office;
+                    url = "/showReceived?office=" + office;
                 else if (tab == 1)
-                url = "/showQueue?office=" + office;
+                    url = "/showQueue?office=" + office;
                 else if (tab==3)
-                url = "/showProcessed?office=" + office;
+                    url = "/showProcessed?office=" + office;
 
                 var request = new XMLHttpRequest();
 				request.onreadystatechange = function() {
@@ -853,7 +859,10 @@
                         for(let y of ret.history){
                             div = document.createElement('div');
                             div.classList.add('step');
-                            div.innerHTML = "<b>"+y.action+"</b><br><font size=1>"+(new Date(Date.parse(y.date)))+"</font><br>" + (y.remarks?"Remarks: "+y.remarks:"No Remarks");
+                            div.innerHTML = "<b>" + y.action + "</b>" 
+                                            + "<br>" + "<font size=1>" + (new Date(Date.parse(y.date))) + "</font>"  
+                                            + "<br>" + (y.remarks?"Remarks: "+y.remarks:"No Remarks")
+                                            + "<br>" + "<i>" + ("Last Handled By: " + y.last_handled_by) + "</i>";
                             line.appendChild(div);
                         }
                     }

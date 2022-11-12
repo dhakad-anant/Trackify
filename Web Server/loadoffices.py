@@ -33,6 +33,6 @@ with app.app_context():
     for dept in departments:
         obj = Department(dept)
         db.session.add(obj)
-        print("Department: {} added!".format(name))
+        print("Department: {} added!".format(dept))
 
     db.session.commit()

@@ -139,14 +139,14 @@
         </div>
         <div class="floating">
             <div class="left">
-            <h2>Add an Office</h2>
-            <div id='texts'>
-                <input id="email" name="email" type="email" placeholder="Enter office email">
-                <input id="otp" name="otp" type="password" placeholder="Enter the OTP">
-            </div>
-            <br>
-            <button id="btn">GET OTP</button>    
-            <button id="cncl" onclick="cancel()">CANCEL</button>    
+                <h2>Add an Office</h2>
+                <div id='texts'>
+                    <input id="email" name="email" type="email" placeholder="Enter office email">
+                    <input id="otp" name="otp" type="password" placeholder="Enter the OTP">
+                </div>
+                <br>
+                <button id="btn">GET OTP</button>    
+                <button id="cncl" onclick="cancel()">CANCEL</button>    
             </div>
             <div class="right">
                 <h2>Remove an Office</h2>
@@ -182,6 +182,7 @@
                 request.open("GET", '/removeOffice?office='+x);
                 request.send();
             }
+            
             function getOTP(){
                 let email = document.getElementById('email').value;
                 if (!/^[a-zA-Z0-9+_\.-]+@[a-zA-Z0-9\.-]+\.[a-zA-Z]+$/.test(email)) {

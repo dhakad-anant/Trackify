@@ -71,7 +71,7 @@ def webappLoginRead():
     code = request.args['qr']
     id = code
     obj = QRCode.query.filter_by(id=id).first()
-    if(obj.authenticated_user):
+    if(obj and obj.authenticated_user):
         usr = Users.query.filter_by(login_email=obj.authenticated_user).first()
         login_user(usr)
         db.session.delete(obj)

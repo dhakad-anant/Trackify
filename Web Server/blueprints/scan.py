@@ -12,7 +12,7 @@ import io
 scan = Blueprint('scan', __name__, template_folder='templates')
 
 @scan.route('/initDB' , methods=['GET'])
-# @login_required
+#  @login_required
 def initDB():
 	ids = Files.query.all()
 	tags = [crypt.encrypt(x.id) for x in ids]
