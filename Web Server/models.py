@@ -74,6 +74,7 @@ class Files(db.Model):
     category = db.Column(db.String)
     location = db.Column(db.String) # currently at (or sent to)
     confirmed = db.Column(db.Boolean)
+    received_by = db.Column(db.String) # the person checks the tickmark in "Incoming Queue" for this file.
     
     def __init__(self, name, created_by, category, location):
         self.name = name

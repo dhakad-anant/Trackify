@@ -56,6 +56,7 @@ def confirmFile():
     try:
         f = Files.query.filter_by(id=crypt.decrypt(request.form['tag'])).first()
         f.confirmed = True
+        f.received_by = current_user.login_email
         db.session.commit()
         return jsonify({'error':False})
     except:
@@ -336,7 +337,7 @@ def fileHistory():
         if (f.location and not f.confirmed):
             ret['history'].append({'location':f.location, 'date':datetime.now(), 'action':'Sent to ' + f.location, 'remarks':'', 'last_handled_by': 'NA'})
         elif (f.location):
-            ret['history'].append({'location':f.location, 'date':datetime.now(), 'action':'Currently at ' + f.location, 'remarks':'', 'last_handled_by': 'NA'})
+            ret['history'].append({'location':f.location, 'date':datetime.now(), 'action':'Currently at ' + f.location, 'remarks':'', 'last_handled_by': f.received_by})
         
         ret['history'] = sorted(ret['history'], key=lambda x: x['date'], reverse=True)
 
