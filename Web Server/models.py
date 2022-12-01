@@ -53,11 +53,11 @@ class Users(UserMixin, db.Model):
     token = db.Column(db.String, unique=True)
     department = db.Column(db.String)
 
-    def __init__(self, login_email):
+    def __init__(self, login_email, name=None, offices=None, department=None):
         self.login_email = login_email
-        self.name = ''
-        self.department = ''
-        self.offices = ''
+        self.name = name
+        self.offices = offices
+        self.department = department
         self.token = serializer.dumps([self.login_email])
 
     def __repr__(self):

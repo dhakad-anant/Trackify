@@ -12,6 +12,9 @@ def generateOTP():
 	try:
 		print(request.form)
 		addr = request.form['email'].lower()
+		user = Users.query.get(addr)
+		if user is None:
+			return jsonify({'error':True, 'msg':'This email is not listed in allowed list. \nKindly contact the admin!'})
 		otp = str(int(random()*1e8)).rjust(8,'0')
 		email.sendMail("Login OTP", addr, 'Hi there\nYour OTP for login is ' + otp)
 		otp_obj = OTP.query.filter( OTP.email == addr ).first()
@@ -45,12 +48,16 @@ def verifyOTP():
 			if 'login' in request.form.keys() and request.form['login']:
 				user = Users.query.get(addr)
 				if user:
+					# print("before login in auth.py")
 					login_user(user)
+					# print("after login in auth.py")
 					if len(user.name):
 						return jsonify({'match':True, 'name':user.name, 'profile':True, 'name':user.name, 'offices':user.offices})
 					else:
+						# print("line 53: auth.py ")
 						return jsonify({'match':True, 'name':'', 'profile':False, 'name':'', 'offices':user.offices})
 				user = Users(addr)
+				# print("line 56: auth.py --> ", user)
 				office = OfficeEmails.query.filter_by(email=addr).first()
 				if office:
 					user.offices = office.name

@@ -179,7 +179,7 @@
                         document.getElementById('overlay').style.display="none";
 						let error = JSON.parse(request.responseText);
 						if (error.error) {
-							alert("Some error occurred!");
+							alert(error.msg);
 							return 0;
 						}
 						document.getElementById('texts').style.transform = 'translate(-55%,0%)';

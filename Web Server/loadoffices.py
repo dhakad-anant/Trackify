@@ -21,12 +21,17 @@ departments = [
 
 with app.app_context():
     OfficeEmails.query.delete()
+    Users.query.delete()
 
     for office in offices:
-        name = office[0]; email = office[2]; category = office[3]
-        obj = OfficeEmails(email, name, 'IITRPR', category)
-        db.session.add(obj)
-        print("Office: {} added!".format(name))
+        office_name = office[0]; email = office[2]; category = office[3]
+        user_name = office[1]
+        user_obj = Users(email, user_name, office_name, 'Other')
+        db.session.add(user_obj)
+        print("User: {} added!".format(user_name))
+        office_emails_obj = OfficeEmails(email, office_name, 'IITRPR', category)
+        db.session.add(office_emails_obj)
+        print("Office: {} added!".format(office_name))
 
     db.session.commit()
 
