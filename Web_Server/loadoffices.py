@@ -1,4 +1,4 @@
-from main import app, db
+from app import app, db
 from models import *
 
 f = open('offices.tsv', 'r')
