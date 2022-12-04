@@ -1,6 +1,7 @@
 from flask import Flask, render_template , request , jsonify, redirect
 from flask_login import LoginManager, login_required, logout_user, current_user
 from models import * 
+import os
 
 from blueprints.auth import auth
 from blueprints.scan import scan
@@ -17,9 +18,11 @@ app.register_blueprint(office_ops)
 app.register_blueprint(file_ops)
 app.register_blueprint(webapp)
 
+file_path = os.path.abspath(os.getcwd())+"\sqlite.db"
 
 app.secret_key = b'\n\x7f&J\xae\xce&\xea\x05e\xdb\x7f\xd3\xbc\x1a6'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///sqlite.db'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///sqlite.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'+file_path
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
